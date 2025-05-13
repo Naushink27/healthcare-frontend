@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* Typing cursor effect */
+.animated-text {
+  display: inline-block;
+  white-space: nowrap;
+  border-right: 0.15em solid #3498db; /* Cursor */
+  animation: blink-caret 0.75s step-end infinite; /* Blinking cursor */
+}
+
+/* Blinking cursor animation */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #3498db;
+  }
+}
