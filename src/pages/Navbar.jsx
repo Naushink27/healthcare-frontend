@@ -9,7 +9,10 @@ const Navbar = () => {
           <Link to="/" className="hover:underline">Home</Link>
           <Link to='/about' className="hover:underline">About Us</Link>
           <Link to='/contact' className="hover:underline">Contact</Link>
-          <button className="bg-white text-blue-600 px-4 py-1 rounded hover:bg-blue-100 transition">Login</button>
+          <Link to='/login'>
+                    <button className="bg-white text-blue-600 px-4 py-1 rounded hover:bg-blue-100 transition">Login</button>
+
+          </Link>
         </nav>
       </div>
     </header>
