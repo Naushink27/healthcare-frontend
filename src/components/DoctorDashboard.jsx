@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { removeUser } from '../utils/userSlice';
-import { Menu, X, Calendar, Users, User, FileText, LogOut } from 'lucide-react';
+import { Menu, FileText } from 'lucide-react';
+import DoctorSidebar from './DoctorSidebar';
+
 
 const DoctorDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const user= useSelector((store)=>store.user.user)
+  console.log(user);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -25,55 +29,11 @@ const DoctorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-0`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-blue-700">Doctor Dashboard</h2>
-          <button className="lg:hidden text-gray-600" onClick={toggleSidebar}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <nav className="flex flex-col p-4 space-y-2">
-          <Link
-            to="/doctor/dashboard"
-            className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
-          >
-            <Calendar className="w-5 h-5 mr-3" />
-            Dashboard
-          </Link>
-          <Link
-            to="/doctor/appointments"
-            className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
-          >
-            <Calendar className="w-5 h-5 mr-3" />
-            Appointments
-          </Link>
-          <Link
-            to="/doctor/patients"
-            className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
-          >
-            <Users className="w-5 h-5 mr-3" />
-            Patients
-          </Link>
-          <Link
-            to="/doctor/profile"
-            className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
-          >
-            <User className="w-5 h-5 mr-3" />
-            Profile
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Logout
-          </button>
-        </nav>
-      </div>
+      <DoctorSidebar
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        handleLogout={handleLogout}
+      />
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <button
           className="lg:hidden p-2 rounded-md bg-gray-200 text-gray-600 mb-4"
@@ -82,7 +42,7 @@ const DoctorDashboard = () => {
           <Menu className="w-6 h-6" />
         </button>
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome, Dr. Smith</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome Back,{(user.firstName).toUpperCase()}</h1>
           <p className="text-gray-600 mt-1">Manage your appointments and patients efficiently.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -157,8 +117,7 @@ const DoctorDashboard = () => {
                   </tr>
                   <tr className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-700">Jane Smith</td>
-                    <td className="py-3 px-4 text-gray-600">2025-05-26</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-gray-600">2025-05-26</td> MUSIC                    <td className="py-3 px-4">
                       <span className="inline-block px-2 py-1 text-sm text-yellow-700 bg-yellow-100 rounded-full">
                         Follow-up
                       </span>
