@@ -11,6 +11,7 @@ const DoctorDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user= useSelector((store)=>store.user.user)
+
   console.log(user);
 
   const toggleSidebar = () => {
@@ -44,6 +45,12 @@ const DoctorDashboard = () => {
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome Back,{(user.firstName).toUpperCase()}</h1>
           <p className="text-gray-600 mt-1">Manage your appointments and patients efficiently.</p>
+          <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
+                 
+                />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="bg-white shadow-md rounded-lg p-6">
