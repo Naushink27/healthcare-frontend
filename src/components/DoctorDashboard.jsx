@@ -75,9 +75,9 @@ const DoctorDashboard = () => {
               <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
                 View Patient Reports
               </button>
-              <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+             <Link to='/doctor/profile'> <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
                 Update Profile
-              </button>
+              </button></Link>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-6">
