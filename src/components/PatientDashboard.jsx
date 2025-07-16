@@ -1,125 +1,166 @@
 import React, { useState } from 'react';
 import PatientSidebar from './PatientSidebar';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { BASE_URL } from '../utils/Constants';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { Menu, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PatientDashboard = () => {
+  const user=useSelector((store)=>store.user.user)
+  console.log(user)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+   const handleLogout=async()=>{
+    try{
+      await axios.post(BASE_URL+'/logout',{}, {withCredentials:true});
+    }
+    catch(error){
+      console.error('Logout failed:', error);
+    }
+     dispatch(removeUser());
+      navigate('/login');
+   }
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-md"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {isSidebarOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
-
-      {/* Sidebar */}
-      <PatientSidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* Main Content */}
-      <div className={`flex-1 p-4 md:p-8 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-        <div className="flex items-center mb-6 flex-wrap">
-          <img src="https://via.placeholder.com/50" alt="Profile" className="w-12 h-12 rounded-full mr-4" />
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold">Welcome Back, MAXI</h1>
-            <p className="text-gray-600 text-sm md:text-base">Manage your health and appointments efficiently.</p>
+      <PatientSidebar
+      isSidebarOpen={isSidebarOpen}
+      toggleSidebar={toggleSidebar}
+      handleLogout={handleLogout}/>
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <button
+          className="lg:hidden p-2 rounded-md bg-gray-200 text-gray-600 mb-4"
+          onClick={toggleSidebar}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome Back,{(user.firstName).toUpperCase()}</h1>
+          <p className="text-gray-600 mt-1">Manage your appointments and patients efficiently.</p>
+          <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
+                 
+                />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-blue-700 mb-2">Today's Appointments</h2>
+            <p className="text-3xl sm:text-4xl font-bold text-gray-800">12</p>
+            <p className="text-gray-600 mt-1">3 new, 9 follow-ups</p>
+            <div className="mt-4">
+              <Link
+                to="/doctor/appointments"
+                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Schedule
+              </Link>
+            </div>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-blue-700 mb-2">Quick Actions</h2>
+            <div className="space-y-2">
+              <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                Schedule Appointment
+              </button>
+              <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                View Patient Reports
+              </button>
+             <Link to='/doctor/profile'> <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                Update Profile
+              </button></Link>
+            </div>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-blue-700 mb-2">Patient Statistics</h2>
+            <p className="text-3xl sm:text-4xl font-bold text-gray-800">245</p>
+            <p className="text-gray-600 mt-1">Total patients this month</p>
+            <div className="mt-4">
+              <Link
+                to="/doctor/patients"
+                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Patients
+              </Link>
+            </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          {/* Today's Appointments */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">Today's Appointments</h2>
-            <p className="text-3xl md:text-4xl font-bold text-gray-800">2</p>
-            <p className="text-gray-600 text-sm md:text-base">1 new, 1 follow-up</p>
-            <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto">
-              View Schedule
-            </button>
+        <div className="mt-6 sm:mt-8 bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-blue-700 mb-4">Recent Patients</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-3 px-4 text-gray-700 font-medium">Name</th>
+                    <th className="py-3 px-4 text-gray-700 font-medium">Last Visit</th>
+                    <th className="py-3 px-4 text-gray-700 font-medium">Status</th>
+                    <th className="py-3 px-4 text-gray-700 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-gray-700">John Doe</td>
+                    <td className="py-3 px-4 text-gray-600">2025-05-27</td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-1 text-sm text-green-700 bg-green-100 rounded-full">
+                        Stable
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button className="text-blue-600 hover:text-blue-800">
+                        <FileText className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-gray-700">Jane Smith</td>
+                    <td className="py-3 px-4 text-gray-600">2025-05-26</td> MUSIC                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-1 text-sm text-yellow-700 bg-yellow-100 rounded-full">
+                        Follow-up
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button className="text-blue-600 hover:text-blue-800">
+                        <FileText className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-3 px-4 text-gray-700">Michael Brown</td>
+                    <td className="py-3 px-4 text-gray-600">2025-05-25</td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-1 text-sm text-green-700 bg-green-100 rounded-full">
+                        Stable
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button className="text-blue-600 hover:text-blue-800">
+                        <FileText className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-            <button className="w-full border border-gray-300 text-gray-700 py-2 rounded-md mb-2 hover:bg-gray-100 text-sm md:text-base">
-              Book Appointment
-            </button>
-            <button className="w-full border border-gray-300 text-gray-700 py-2 rounded-md mb-2 hover:bg-gray-100 text-sm md:text-base">
-              View Health Reports
-            </button>
-            <button className="w-full border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-100 text-sm md:text-base">
-              Update Profile
-            </button>
-          </div>
-
-          {/* Patient Stats */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">Health Stats</h2>
-            <p className="text-3xl md:text-4xl font-bold text-gray-800">15</p>
-            <p className="text-gray-600 text-sm md:text-base">Total visits this month</p>
-            <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto">
-              View Records
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Doctors */}
-        <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-          <h2 className="text-lg font-semibold mb-4">Recent Doctors</h2>
-          <table className="w-full text-left text-sm md:text-base">
-            <thead>
-              <tr className="text-gray-600">
-                <th className="pb-2">Name</th>
-                <th className="pb-2">Last Visit</th>
-                <th className="pb-2">Specialty</th>
-                <th className="pb-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t">
-                <td className="py-2">Dr. John Smith</td>
-                <td className="py-2">2025-05-27</td>
-                <td className="py-2">
-                  <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs md:text-sm">Cardiologist</span>
-                </td>
-                <td className="py-2 flex gap-2 flex-wrap">
-                  <button className="text-blue-600 hover:underline text-xs md:text-sm">Book Again</button>
-                  <button className="text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-3-3v6m-9 3h18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-              <tr className="border-t">
-                <td className="py-2">Dr. Emily Brown</td>
-                <td className="py-2">2025-05-26</td>
-                <td className="py-2">
-                  <span className="text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs md:text-sm">Pediatrician</span>
-                </td>
-                <td className="py-2 flex gap-2 flex-wrap">
-                  <button className="text-blue-600 hover:underline text-xs md:text-sm">Book Again</button>
-                  <button className="text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-3-3v6m-9 3h18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
+   {isSidebarOpen && (
+        <div
+          className="fixed inset-0  bg-opacity-50 z-20 lg:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
     </div>
   );
 };

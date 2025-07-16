@@ -1,47 +1,56 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { X, Calendar, Users, User, LogOut } from 'lucide-react';
 
-const PatientSidebar = ({ isOpen, toggleSidebar }) => {
+const PatientSidebar = ({ isSidebarOpen, toggleSidebar, handleLogout }) => {
   return (
-    <div className={`fixed top-0 left-0 h-screen bg-white shadow-lg p-4 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} w-64 z-50`}>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-blue-600 font-semibold text-lg">Patient Dashboard</h1>
-        <button onClick={toggleSidebar} className="text-gray-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+    <div
+      className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 lg:static lg:inset-0`}
+    >
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-blue-700">Patient Dashboard</h2>
+        <button className="lg:hidden text-gray-600" onClick={toggleSidebar}>
+          <X className="w-6 h-6" />
         </button>
       </div>
-      <nav className="flex flex-col gap-4">
-        <a href="#" className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12h18M3 6h18M3 18h18" />
-          </svg>
+      <nav className="flex flex-col p-4 space-y-2">
+        <Link
+          to="/patient/dashboard"
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <Calendar className="w-5 h-5 mr-3" />
           Dashboard
-        </a>
-        <a href="#" className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          Find Doctors
-        </a>
-        <a href="#" className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+        </Link>
+        <Link
+          to="/patient/appointments"
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <Calendar className="w-5 h-5 mr-3" />
           Appointments
-        </a>
-        <a href="#" className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
+        </Link>
+        <Link
+          to="/patient/doctors"
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <Users className="w-5 h-5 mr-3" />
+          Doctors
+        </Link>
+        <Link
+          to="/patient/profile"
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <User className="w-5 h-5 mr-3" />
           Profile
-        </a>
-        <a href="#" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mt-auto">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
           Logout
-        </a>
+        </button>
       </nav>
     </div>
   );
