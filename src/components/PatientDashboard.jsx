@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Menu, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { removeUser } from '../utils/userSlice';
 
 const PatientDashboard = () => {
   const user=useSelector((store)=>store.user.user)

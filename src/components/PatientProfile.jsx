@@ -173,13 +173,7 @@ const PatientProfile = () => {
         firstName,
         lastName,
         email,
-        profilePicture,
-        age,
-        gender,
-        contactNumber,
-        MedicalHistory: sanitizedMedicalHistory,
-        bloodGroup,
-        address: sanitizedAddress,
+        profilePicture
       }));
 
       setError('');

@@ -48,7 +48,7 @@ const PatientSidebar = ({ isSidebarOpen, toggleSidebar, handleLogout }) => {
           onClick={handleLogout}
           className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
         >
-          <LogOut className="w-5 h-5 mr-3" />
+          <LogOut className="w-5 h-5 mr-3" onClick={handleLogout}/>
           Logout
         </button>
       </nav>
