@@ -11,6 +11,7 @@ import DoctorProfile from './components/DoctorProfile';
 import PatientProfile from './components/PatientProfile';
 import AllDoctors from './components/AllDoctors';
 import BookAppointment from './components/BookAppointment';
+import PatientAppointments from './components/PatientAppointments';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/patient/profile" element={<PatientProfile />} />
         <Route path='/patient/doctors' element={<AllDoctors />} />
         <Route path="/patient/book-appointment/:doctorId" element={<BookAppointment />} />
+        <Route path="/patient/appointments" element={<PatientAppointments />} />
       </Route>
     </Routes>
   );

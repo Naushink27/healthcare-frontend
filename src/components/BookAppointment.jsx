@@ -24,6 +24,7 @@ const BookAppointment = () => {
   const dispatch = useDispatch();
   const { doctorId } = useParams();
   const user = useSelector((store) => store.user.user);
+  console.log('User from Redux store:', user);
   const patientId = user?._id;
 
   const toggleSidebar = () => {
