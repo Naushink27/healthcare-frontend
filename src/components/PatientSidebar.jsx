@@ -30,6 +30,13 @@ const PatientSidebar = ({ isSidebarOpen, toggleSidebar, handleLogout }) => {
           <Calendar className="w-5 h-5 mr-3" />
           Appointments
         </Link>
+         <Link
+          to="/patient/feedback"
+          className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+        >
+          <Calendar className="w-5 h-5 mr-3" />
+         Give Feedback to our doctors
+        </Link>
         <Link
           to="/patient/doctors"
           className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"

@@ -12,6 +12,9 @@ import PatientProfile from './components/PatientProfile';
 import AllDoctors from './components/AllDoctors';
 import BookAppointment from './components/BookAppointment';
 import PatientAppointments from './components/PatientAppointments';
+import DoctorAppointments from './components/DoctorAppointments';
+import PatientFeedback from './components/PatientFeedback';
+import PatientFeedbackForm from './components/PatientFeedbackForm';
 
 function App() {
   return (
@@ -29,6 +32,9 @@ function App() {
         <Route path='/patient/doctors' element={<AllDoctors />} />
         <Route path="/patient/book-appointment/:doctorId" element={<BookAppointment />} />
         <Route path="/patient/appointments" element={<PatientAppointments />} />
+        <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+        <Route path='patient/feedback' element={<PatientFeedback />} />
+        <Route path="/patient/feedbackform/:doctorId" element={<PatientFeedbackForm />} />
       </Route>
     </Routes>
   );
