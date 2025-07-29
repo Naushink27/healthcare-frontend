@@ -4,20 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import axios from 'axios';
 import { BASE_URL } from '../utils/Constants';
-import DoctorSidebar from './DoctorSidebar'; // Assumed to exist
+import DoctorSidebar from './DoctorSidebar';
 import { Menu, Loader2 } from 'lucide-react';
 import { removeUser } from '../utils/userSlice';
 
 const DoctorAppointments = () => {
   const user = useSelector((store) => store.user.user);
   const [appointments, setAppointments] = useState([]);
-  const [patients, setPatients] = useState({}); // Store patient profiles by patientId
+  const [patients, setPatients] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null); // Track selected appointment
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -33,7 +33,7 @@ const DoctorAppointments = () => {
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Failed to logout');
       setToast(true);
-      setTimeout(() => setToast(false), 3000);
+      setTimeout(() => setToast(false), 5000);
     }
   };
 
@@ -45,7 +45,7 @@ const DoctorAppointments = () => {
         setTimeout(() => {
           setToast(false);
           navigate('/login');
-        }, 3000);
+        }, 5000);
         return;
       }
 
@@ -57,39 +57,35 @@ const DoctorAppointments = () => {
         });
         const appointmentsData = appointmentResponse.data?.appointments || [];
         setAppointments(appointmentsData);
-        console.log('Appointments fetched successfully:', appointmentsData);
 
         // Get unique patient IDs
-        const patientIds = [...new Set(appointmentsData.map((appt) => appt.patientId))];
+        const patientIds = [...new Set(appointmentsData.map((appt) => 
+          typeof appt.patientId === 'string' ? appt.patientId : appt.patientId?._id
+        ))];
 
         // Fetch patient profiles concurrently
         const patientPromises = patientIds.map((patientId) =>
           axios.get(`${BASE_URL}/patient/get/profile/${patientId}`, { withCredentials: true })
             .then((response) => ({ patientId, data: response.data?.patient }))
-            .catch((err) => {
-              console.error(`Error fetching patient ${patientId}:`, err);
-              return { patientId, data: null };
-            })
+            .catch(() => ({ patientId, data: null }))
         );
 
         const patientResponses = await Promise.all(patientPromises);
         const patientMap = patientResponses.reduce((acc, { patientId, data }) => {
-          acc[patientId] = data ? { firstName: data.firstName, lastName: data.lastName } : null;
+          acc[patientId] = data && data.userId ? { firstName: data.userId.firstName, lastName: data.userId.lastName } : null;
           return acc;
         }, {});
 
         setPatients(patientMap);
-        console.log('Patients fetched successfully:', patientMap);
         setError('');
       } catch (err) {
-        console.error('Fetch appointments error:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'No appointments found'
             : err.response?.data?.message || err.message || 'Failed to fetch appointments'
         );
         setToast(true);
-        setTimeout(() => setToast(false), 3000);
+        setTimeout(() => setToast(false), 5000);
         if (err.response?.status === 401 || err.response?.status === 403) {
           dispatch(removeUser());
           navigate('/login');
@@ -102,7 +98,20 @@ const DoctorAppointments = () => {
     fetchAppointmentsAndPatients();
   }, [user, navigate, dispatch]);
 
-  // Handle confirmation of appointment
+  const getAppointmentTime = (appt) => {
+    if (appt.appointmentTime) {
+      return appt.appointmentTime.split(':').slice(0, 2).join(':');
+    }
+    return format(parseISO(appt.appointmentDate), 'HH:mm');
+  };
+
+  const getPatientName = (appt) => {
+    const patientId = typeof appt.patientId === 'string' ? appt.patientId : appt.patientId?._id;
+    return patients[patientId]
+      ? `${patients[patientId].firstName} ${patients[patientId].lastName}`
+      : 'Unknown Patient';
+  };
+
   const handleConfirmAppointment = async () => {
     try {
       const response = await axios.patch(
@@ -117,11 +126,11 @@ const DoctorAppointments = () => {
       );
       setError('Appointment confirmed successfully!');
       setToast(true);
-      setTimeout(() => setToast(false), 3000);
+      setTimeout(() => setToast(false), 5000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to confirm appointment');
       setToast(true);
-      setTimeout(() => setToast(false), 3000);
+      setTimeout(() => setToast(false), 5000);
     } finally {
       setIsModalOpen(false);
       setSelectedAppointmentId(null);
@@ -182,17 +191,11 @@ const DoctorAppointments = () => {
                           key={appt._id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {patients[appt.patientId]
-                              ? `${patients[appt.patientId].firstName} ${patients[appt.patientId].lastName}`
-                              : appt.patientId}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{getPatientName(appt)}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {format(parseISO(appt.appointmentDate), 'MMMM d, yyyy')}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {appt.appointmentTime.split(':').slice(0, 2).join(':')}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{getAppointmentTime(appt)}</td>
                           <td className="px-4 py-3 text-sm">
                             <button
                               onClick={() => {
@@ -232,11 +235,7 @@ const DoctorAppointments = () => {
                       <div className="space-y-3">
                         <div>
                           <span className="font-medium text-gray-700">Patient:</span>
-                          <p className="text-sm text-gray-600">
-                            {patients[appt.patientId]
-                              ? `${patients[appt.patientId].firstName} ${patients[appt.patientId].lastName}`
-                              : appt.patientId}
-                          </p>
+                          <p className="text-sm text-gray-600">{getPatientName(appt)}</p>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Date:</span>
@@ -246,9 +245,7 @@ const DoctorAppointments = () => {
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Time:</span>
-                          <p className="text-sm text-gray-600">
-                            {appt.appointmentTime.split(':').slice(0, 2).join(':')}
-                          </p>
+                          <p className="text-sm text-gray-600">{getAppointmentTime(appt)}</p>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Status:</span>

@@ -15,6 +15,7 @@ import PatientAppointments from './components/PatientAppointments';
 import DoctorAppointments from './components/DoctorAppointments';
 import PatientFeedback from './components/PatientFeedback';
 import PatientFeedbackForm from './components/PatientFeedbackForm';
+import DoctorFeedback from './components/DoctorFeedback';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/doctor/appointments" element={<DoctorAppointments />} />
         <Route path='patient/feedback' element={<PatientFeedback />} />
         <Route path="/patient/feedbackform/:doctorId" element={<PatientFeedbackForm />} />
+        <Route path="/doctor/feedback" element={<DoctorFeedback />} />
       </Route>
     </Routes>
   );

@@ -31,7 +31,7 @@ const PatientAppointments = () => {
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Failed to logout');
       setToast(true);
-      setTimeout(() => setToast(false), 3000);
+      setTimeout(() => setToast(false), 5000);
     }
   };
 
@@ -43,7 +43,7 @@ const PatientAppointments = () => {
         setTimeout(() => {
           setToast(false);
           navigate('/login');
-        }, 3000);
+        }, 5000);
         return;
       }
 
@@ -55,19 +55,17 @@ const PatientAppointments = () => {
         });
         const appointmentsData = appointmentResponse.data?.appointments || [];
         setAppointments(appointmentsData);
-        console.log('Appointments fetched successfully:', appointmentsData);
 
         // Get unique doctor IDs
-        const doctorIds = [...new Set(appointmentsData.map((appt) => appt.doctorId))];
+        const doctorIds = [...new Set(appointmentsData.map((appt) => 
+          typeof appt.doctorId === 'string' ? appt.doctorId : appt.doctorId?._id
+        ))];
 
         // Fetch doctor profiles concurrently
         const doctorPromises = doctorIds.map((doctorId) =>
           axios.get(`${BASE_URL}/doctor/get/profile/${doctorId}`, { withCredentials: true })
             .then((response) => ({ doctorId, data: response.data?.doctor }))
-            .catch((err) => {
-              console.error(`Error fetching doctor ${doctorId}:`, err);
-              return { doctorId, data: null };
-            })
+            .catch(() => ({ doctorId, data: null }))
         );
 
         const doctorResponses = await Promise.all(doctorPromises);
@@ -77,17 +75,15 @@ const PatientAppointments = () => {
         }, {});
 
         setDoctors(doctorMap);
-        console.log('Doctors fetched successfully:', doctorMap);
         setError('');
       } catch (err) {
-        console.error('Fetch appointments error:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'No appointments found'
             : err.response?.data?.message || err.message || 'Failed to fetch appointments'
         );
         setToast(true);
-        setTimeout(() => setToast(false), 3000);
+        setTimeout(() => setToast(false), 5000);
         if (err.response?.status === 401 || err.response?.status === 403) {
           dispatch(removeUser());
           navigate('/login');
@@ -99,6 +95,20 @@ const PatientAppointments = () => {
 
     fetchAppointmentsAndDoctors();
   }, [user, navigate, dispatch]);
+
+  const getAppointmentTime = (appt) => {
+    if (appt.appointmentTime) {
+      return appt.appointmentTime.split(':').slice(0, 2).join(':');
+    }
+    return format(parseISO(appt.appointmentDate), 'HH:mm');
+  };
+
+  const getDoctorName = (appt) => {
+    const doctorId = typeof appt.doctorId === 'string' ? appt.doctorId : appt.doctorId?._id;
+    return doctors[doctorId]
+      ? `Dr. ${doctors[doctorId].firstName} ${doctors[doctorId].lastName}`
+      : 'Unknown Doctor';
+  };
 
   if (loading) {
     return (
@@ -154,17 +164,11 @@ const PatientAppointments = () => {
                           key={appt._id}
                           className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {doctors[appt.doctorId]
-                              ? `Dr. ${doctors[appt.doctorId].firstName} ${doctors[appt.doctorId].lastName}`
-                              : appt.doctorId}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{getDoctorName(appt)}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {format(parseISO(appt.appointmentDate), 'MMMM d, yyyy')}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {appt.appointmentTime.split(':').slice(0, 2).join(':')}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{getAppointmentTime(appt)}</td>
                           <td className="px-4 py-3 text-sm">
                             <span
                               className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -197,11 +201,7 @@ const PatientAppointments = () => {
                       <div className="space-y-3">
                         <div>
                           <span className="font-medium text-gray-700">Doctor:</span>
-                          <p className="text-sm text-gray-600">
-                            {doctors[appt.doctorId]
-                              ? `Dr. ${doctors[appt.doctorId].firstName} ${doctors[appt.doctorId].lastName}`
-                              : appt.doctorId}
-                          </p>
+                          <p className="text-sm text-gray-600">{getDoctorName(appt)}</p>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Date:</span>
@@ -211,9 +211,7 @@ const PatientAppointments = () => {
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Time:</span>
-                          <p className="text-sm text-gray-600">
-                            {appt.appointmentTime.split(':').slice(0, 2).join(':')}
-                          </p>
+                          <p className="text-sm text-gray-600">{getAppointmentTime(appt)}</p>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">Status:</span>

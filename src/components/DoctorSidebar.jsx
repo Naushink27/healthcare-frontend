@@ -31,7 +31,7 @@ const DoctorSidebar = ({ isSidebarOpen, toggleSidebar, handleLogout }) => {
           Appointments
         </Link>
         <Link
-          to="/doctor/patients"
+          to="/doctor/feedback"
           className="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
         >
           <Users className="w-5 h-5 mr-3" />
