@@ -22,7 +22,7 @@ const PatientProfile = () => {
   const [profilePicture, setProfilePicture] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
+  const [ContactNumber, setContactNumber] = useState('');
   const [MedicalHistory, setMedicalHistory] = useState('');
   const [address, setAddress] = useState('');
   const [bloodGroup, setBloodGroup] = useState('');
@@ -50,10 +50,16 @@ const PatientProfile = () => {
           throw new Error('Patient profile not found');
         }
 
+        console.log('Fetched patient data:', patient); // Debug log
+        console.log('Fetched profile picture (Patient):', patient.profilePicture); // Debug log
+        console.log('Fetched profile picture (User):', patient.userId.profilePicture); // Debug log
+        console.log('Fetched firstName (User):', patient.userId.firstName); // Debug log
+        console.log('Fetched lastName (User):', patient.userId.lastName); // Debug log
+
         setFirstName(patient.userId.firstName || '');
         setLastName(patient.userId.lastName || '');
         setEmail(patient.userId.email || '');
-        setProfilePicture(patient.profilePicture || '');
+        setProfilePicture(patient.profilePicture || patient.userId.profilePicture || '');
         setAge(patient.age || '');
         setGender(patient.gender || '');
         setContactNumber(patient.ContactNumber || '');
@@ -67,10 +73,10 @@ const PatientProfile = () => {
           firstName: patient.userId.firstName,
           lastName: patient.userId.lastName,
           email: patient.userId.email,
-          profilePicture: patient.profilePicture,
+          profilePicture: patient.profilePicture || patient.userId.profilePicture,
           age: patient.age,
           gender: patient.gender,
-          contactNumber: patient.ContactNumber,
+          ContactNumber: patient.ContactNumber,
           MedicalHistory: patient.MedicalHistory,
           bloodGroup: patient.bloodGroup,
           address: patient.address,
@@ -130,11 +136,11 @@ const PatientProfile = () => {
     if (age && (isNaN(age) || age < 18 || age > 100)) {
       return 'Age must be between 18 and 100';
     }
-    if (contactNumber && !/^\d{10}$/.test(contactNumber)) {
+    if (ContactNumber && !/^\d{10}$/.test(ContactNumber)) {
       return 'Phone number must be 10 digits';
     }
-    if (profilePicture && !/^https?:\/\/.+/.test(profilePicture)) {
-      return 'Profile picture must be a valid URL';
+    if (profilePicture && !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(profilePicture)) {
+      return 'Profile picture must be a valid image URL (jpg, jpeg, png, or gif)';
     }
     return '';
   };
@@ -153,28 +159,61 @@ const PatientProfile = () => {
       setIsUpdating(true);
       const sanitizedMedicalHistory = DOMPurify.sanitize(MedicalHistory);
       const sanitizedAddress = DOMPurify.sanitize(address);
+      const updateData = {
+        firstName,
+        lastName,
+        age,
+        gender,
+        ContactNumber,
+        bloodGroup,
+        MedicalHistory: sanitizedMedicalHistory,
+        address: sanitizedAddress,
+      };
+      if (profilePicture) {
+        updateData.profilePicture = profilePicture;
+      }
+
+      console.log('Sending update with data:', updateData); // Debug log
       const response = await axios.patch(
         `${BASE_URL}/patient/update/profile/${userId}`,
-        {
-          age,
-          gender,
-          ContactNumber: contactNumber,
-          bloodGroup,
-          MedicalHistory: sanitizedMedicalHistory,
-          address: sanitizedAddress,
-          profilePicture,
-        },
+        updateData,
         { withCredentials: true }
       );
 
-      dispatch(addUser({
-        ...user,
-        _id: userId,
-        firstName,
-        lastName,
-        email,
-        profilePicture
-      }));
+      const updatedPatient = response.data?.patient;
+      console.log('Server response patient data:', updatedPatient); // Debug log
+      console.log('Server response profile picture (Patient):', updatedPatient.profilePicture); // Debug log
+      console.log('Server response profile picture (User):', updatedPatient.userId.profilePicture); // Debug log
+      console.log('Server response firstName (User):', updatedPatient.userId.firstName); // Debug log
+      console.log('Server response lastName (User):', updatedPatient.userId.lastName); // Debug log
+
+      if (updatedPatient) {
+        setFirstName(updatedPatient.userId.firstName || firstName);
+        setLastName(updatedPatient.userId.lastName || lastName);
+        setEmail(updatedPatient.userId.email || '');
+        setProfilePicture(updatedPatient.profilePicture || updatedPatient.userId.profilePicture || '');
+        setAge(updatedPatient.age || '');
+        setGender(updatedPatient.gender || '');
+        setContactNumber(updatedPatient.ContactNumber || '');
+        setMedicalHistory(updatedPatient.MedicalHistory || '');
+        setAddress(updatedPatient.address || '');
+        setBloodGroup(updatedPatient.bloodGroup || '');
+
+        dispatch(addUser({
+          ...user,
+          _id: userId,
+          firstName: updatedPatient.userId.firstName || firstName,
+          lastName: updatedPatient.userId.lastName || lastName,
+          email: updatedPatient.userId.email,
+          profilePicture: updatedPatient.profilePicture || updatedPatient.userId.profilePicture,
+          age: updatedPatient.age,
+          gender: updatedPatient.gender,
+          ContactNumber: updatedPatient.ContactNumber,
+          MedicalHistory: updatedPatient.MedicalHistory,
+          bloodGroup: updatedPatient.bloodGroup,
+          address: updatedPatient.address,
+        }));
+      }
 
       setError('');
       setToast(true);
@@ -276,7 +315,7 @@ const PatientProfile = () => {
                 <input
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
-                  placeholder="Profile Picture URL"
+                  placeholder="Profile Picture URL (jpg, jpeg, png, gif)"
                   value={profilePicture}
                   onChange={(e) => {
                     setProfilePicture(e.target.value);
@@ -324,7 +363,7 @@ const PatientProfile = () => {
                   type="tel"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Phone Number"
-                  value={contactNumber}
+                  value={ContactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
                 />
               </label>
@@ -361,7 +400,7 @@ const PatientProfile = () => {
               <div className="flex justify-center space-x-4">
                 <button
                   type="button"
-                  className="px-4 py-2 bg_gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                   onClick={() => navigate('/patient/dashboard')}
                 >
                   Cancel

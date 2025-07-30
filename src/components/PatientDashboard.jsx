@@ -1,164 +1,128 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PatientSidebar from './PatientSidebar';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { BASE_URL } from '../utils/Constants';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { Menu, FileText } from 'lucide-react';
+import { Menu, FileText, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { removeUser } from '../utils/userSlice';
+import Chatbot from './Chatbot';
 
 const PatientDashboard = () => {
-  const user=useSelector((store)=>store.user.user)
-  console.log(user)
+  const user = useSelector((store) => store.user.user);
+  console.log(user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [appointments, setAppointments] = useState([]);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-   const handleLogout=async()=>{
-    try{
-      await axios.post(BASE_URL+'/logout',{}, {withCredentials:true});
-    }
-    catch(error){
+  const handleLogout = async () => {
+    try {
+      await axios.post(BASE_URL + '/logout', {}, { withCredentials: true });
+    } catch (error) {
       console.error('Logout failed:', error);
     }
-     dispatch(removeUser());
-      navigate('/login');
-   }
+    dispatch(removeUser());
+    navigate('/login');
+  };
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      const res = await axios.get(BASE_URL + '/get/appointments/' + user._id, { withCredentials: true });
+      console.log('Appointments fetched:', res.data.appointments);
+      setAppointments(res.data.appointments);
+    };
+
+    fetchAppointments();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar Toggle Button */}
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 flex">
+      {/* Sidebar */}
       <PatientSidebar
-      isSidebarOpen={isSidebarOpen}
-      toggleSidebar={toggleSidebar}
-      handleLogout={handleLogout}/>
-      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        handleLogout={handleLogout}
+      />
+      <div className="flex-1 p-6 lg:p-8">
+        {/* Sidebar Toggle Button */}
         <button
-          className="lg:hidden p-2 rounded-md bg-gray-200 text-gray-600 mb-4"
+          className="lg:hidden p-3 rounded-full bg-blue-100 text-blue-600 mb-8 shadow-md hover:bg-blue-200 transition-all"
           onClick={toggleSidebar}
         >
           <Menu className="w-6 h-6" />
         </button>
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Welcome Back,{(user.firstName).toUpperCase()}</h1>
-          <p className="text-gray-600 mt-1">Manage your appointments and patients efficiently.</p>
-          <img
-                  src={user.profilePicture}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
-                 
-                />
+
+        {/* Header Section */}
+        <div className="mb-10">
+          <div className="flex items-center justify-between flex-wrap gap-6">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                Welcome Back, {user.firstName.toUpperCase()}
+              </h1>
+              <p className="text-gray-600 mt-3 text-lg">Manage your health with ease.</p>
+            </div>
+            <img
+              src={user.profilePicture}
+              alt="Profile"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-blue-200 shadow-lg hover:shadow-xl transition-shadow"
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-blue-700 mb-2">Today's Appointments</h2>
-            <p className="text-3xl sm:text-4xl font-bold text-gray-800">12</p>
-            <p className="text-gray-600 mt-1">3 new, 9 follow-ups</p>
-            <div className="mt-4">
-              <Link
-                to="/doctor/appointments"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                View Schedule
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Appointments Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-blue-700">Total Appointments</h2>
+              <Calendar className="w-6 h-6 text-blue-500" />
+            </div>
+            <p className="text-5xl font-extrabold text-gray-800 mb-6">{appointments.length}</p>
+            <Link
+              to="/patient/appointments"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-teal-500 text-white rounded-lg hover:from-blue-700 hover:to-teal-600 transition-all"
+            >
+              View Schedule
+            </Link>
+          </div>
+
+          {/* Quick Actions Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <h2 className="text-xl font-semibold text-blue-700 mb-6">Quick Actions</h2>
+            <div className="space-y-4">
+              <Link to="/patient/appointment">
+                <button className="w-full px-6 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all text-lg">
+                  Schedule Appointment
+                </button>
+              </Link>
+              <Link to="/patient/profile">
+                <button className="w-full px-6 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all text-lg">
+                  Update Profile
+                </button>
               </Link>
             </div>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-blue-700 mb-2">Quick Actions</h2>
-            <div className="space-y-2">
-              <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                Schedule Appointment
-              </button>
-              <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                View Patient Reports
-              </button>
-             <Link to='/doctor/profile'> <button className="w-full px-4 py-2 bg-transparent border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                Update Profile
-              </button></Link>
-            </div>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-blue-700 mb-2">Patient Statistics</h2>
-            <p className="text-3xl sm:text-4xl font-bold text-gray-800">245</p>
-            <p className="text-gray-600 mt-1">Total patients this month</p>
-            <div className="mt-4">
-              <Link
-                to="/doctor/patients"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                View Patients
-              </Link>
-            </div>
-          </div>
         </div>
-        <div className="mt-6 sm:mt-8 bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-blue-700 mb-4">Recent Patients</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-3 px-4 text-gray-700 font-medium">Name</th>
-                    <th className="py-3 px-4 text-gray-700 font-medium">Last Visit</th>
-                    <th className="py-3 px-4 text-gray-700 font-medium">Status</th>
-                    <th className="py-3 px-4 text-gray-700 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-700">John Doe</td>
-                    <td className="py-3 px-4 text-gray-600">2025-05-27</td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-1 text-sm text-green-700 bg-green-100 rounded-full">
-                        Stable
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        <FileText className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-700">Jane Smith</td>
-                    <td className="py-3 px-4 text-gray-600">2025-05-26</td> MUSIC                    <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-1 text-sm text-yellow-700 bg-yellow-100 rounded-full">
-                        Follow-up
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        <FileText className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-700">Michael Brown</td>
-                    <td className="py-3 px-4 text-gray-600">2025-05-25</td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-1 text-sm text-green-700 bg-green-100 rounded-full">
-                        Stable
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        <FileText className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
+        {/* Chatbot Sidebar */}
+        <div className="mt-8 lg:mt-0 lg:ml-8">
+          <div className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow h-[600px]">
+            <Chatbot />
           </div>
         </div>
       </div>
-   {isSidebarOpen && (
+
+      {/* Overlay for Mobile Sidebar */}
+      {isSidebarOpen && (
         <div
-          className="fixed inset-0  bg-opacity-50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={toggleSidebar}
         ></div>
       )}

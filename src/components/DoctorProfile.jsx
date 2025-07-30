@@ -6,9 +6,11 @@ import { addUser, removeUser } from '../utils/userSlice';
 import { Menu, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL } from '../utils/Constants';
+import DOMPurify from 'dompurify';
 
 const DoctorProfile = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((store) => store.user.user);
@@ -19,7 +21,7 @@ const DoctorProfile = () => {
   const [email, setEmail] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [age, setAge] = useState('');
-  const [phone, setPhone] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [experience, setExperience] = useState('');
   const [qualification, setQualification] = useState('');
@@ -29,7 +31,7 @@ const DoctorProfile = () => {
   const [error, setError] = useState('');
   const [toast, setToast] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [imageError, setImageError] = useState(false); // Track if image fails to load
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchDoctorProfile = async () => {
@@ -45,14 +47,25 @@ const DoctorProfile = () => {
         const response = await axios.get(`${BASE_URL}/doctor/get/profile/${userId}`, {
           withCredentials: true,
         });
-        const { doctor } = response.data;
+        const doctor = response.data?.doctor;
+        if (!doctor) {
+          throw new Error('Doctor profile not found');
+        }
 
-        setFirstName(doctor.userId.firstName || '');
-        setLastName(doctor.userId.lastName || '');
-        setEmail(doctor.userId.email || '');
-        setProfilePicture(doctor.profilePicture || '');
+        console.log('Fetched doctor data:', doctor); // Debug log
+        console.log('Fetched profile picture (Doctor):', doctor.profilePicture); // Debug log
+        console.log('Fetched profile picture (User):', doctor.userId?.profilePicture); // Debug log
+        console.log('Fetched firstName (Doctor):', doctor.firstName); // Debug log
+        console.log('Fetched lastName (Doctor):', doctor.lastName); // Debug log
+        console.log('Fetched firstName (User):', doctor.userId?.firstName); // Debug log
+        console.log('Fetched lastName (User):', doctor.userId?.lastName); // Debug log
+
+        setFirstName(doctor.userId?.firstName || doctor.firstName || '');
+        setLastName(doctor.userId?.lastName || doctor.lastName || '');
+        setEmail(doctor.userId?.email || doctor.email || '');
+        setProfilePicture(doctor.profilePicture || doctor.userId?.profilePicture || '');
         setAge(doctor.age || '');
-        setPhone(doctor.contactNumber || '');
+        setContactNumber(doctor.contactNumber || '');
         setSpecialization(doctor.specialization || '');
         setExperience(doctor.experience || '');
         setQualification(doctor.qualification || '');
@@ -63,15 +76,28 @@ const DoctorProfile = () => {
         dispatch(addUser({
           ...user,
           _id: userId,
-          firstName: doctor.userId.firstName,
-          lastName: doctor.userId.lastName,
-          email: doctor.userId.email,
-          profilePicture: doctor.profilePicture,
+          firstName: doctor.userId?.firstName || doctor.firstName,
+          lastName: doctor.userId?.lastName || doctor.lastName,
+          email: doctor.userId?.email || doctor.email,
+          profilePicture: doctor.profilePicture || doctor.userId?.profilePicture,
+          age: doctor.age,
+          contactNumber: doctor.contactNumber,
+          specialization: doctor.specialization,
+          experience: doctor.experience,
+          qualification: doctor.qualification,
+          hospitalName: doctor.hospitalName,
+          address: doctor.address,
+          about: doctor.about,
         }));
 
         setError('');
       } catch (err) {
-        setError(err.response?.data?.message || err.response?.data?.error || 'Failed to fetch profile');
+        console.error('Profile fetch error:', err.response || err);
+        setError(
+          err.response?.status === 404
+            ? 'Doctor profile not found'
+            : err.response?.data?.message || err.message || 'Failed to fetch profile'
+        );
         setToast(true);
         setTimeout(() => setToast(false), 3000);
         if (err.response?.status === 401 || err.response?.status === 403) {
@@ -109,17 +135,17 @@ const DoctorProfile = () => {
     if (!specialization.trim() || !qualification.trim()) {
       return 'Specialization and qualification are required';
     }
-    if (age && (isNaN(age) || age < 18 || age > 100)) {
-      return 'Age must be between 18 and 100';
+    if (age && (isNaN(age) || age < 22 || age > 100)) {
+      return 'Age must be between 22 and 100';
     }
     if (experience && (isNaN(experience) || experience < 0)) {
       return 'Experience must be a positive number';
     }
-    if (phone && !/^\d{10}$/.test(phone)) {
+    if (contactNumber && !/^\d{10}$/.test(contactNumber)) {
       return 'Phone number must be 10 digits';
     }
-    if (profilePicture && !/^https?:\/\/.+/.test(profilePicture)) {
-      return 'Profile picture must be a valid URL';
+    if (profilePicture && !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(profilePicture)) {
+      return 'Profile picture must be a valid image URL (jpg, jpeg, png, or gif)';
     }
     return '';
   };
@@ -135,47 +161,95 @@ const DoctorProfile = () => {
     }
 
     try {
+      setIsUpdating(true);
+      const sanitizedAbout = DOMPurify.sanitize(about);
+      const sanitizedAddress = DOMPurify.sanitize(address);
+      const updateData = {
+        firstName,
+        lastName,
+        age,
+        specialization,
+        experience,
+        qualification,
+        contactNumber,
+        address: sanitizedAddress,
+        about: sanitizedAbout,
+        hospitalName,
+      };
+      if (profilePicture) {
+        updateData.profilePicture = profilePicture;
+      }
+
+      console.log('Sending update with data:', updateData); // Debug log
       const response = await axios.patch(
         `${BASE_URL}/doctor/update/profile/${userId}`,
-        {
-          age,
-          specialization,
-          experience,
-          qualification,
-          contactNumber: phone,
-          address,
-          about,
-          profilePicture,
-          hospitalName,
-        },
+        updateData,
         { withCredentials: true }
       );
 
-      dispatch(addUser({
-        ...user,
-        _id: userId,
-        firstName,
-        lastName,
-        email,
-        profilePicture,
-      }));
+      const updatedDoctor = response.data?.doctor;
+      console.log('Server response doctor data:', updatedDoctor); // Debug log
+      console.log('Server response profile picture (Doctor):', updatedDoctor.profilePicture); // Debug log
+      console.log('Server response profile picture (User):', updatedDoctor.userId?.profilePicture); // Debug log
+      console.log('Server response firstName (Doctor):', updatedDoctor.firstName); // Debug log
+      console.log('Server response lastName (Doctor):', updatedDoctor.lastName); // Debug log
+      console.log('Server response firstName (User):', updatedDoctor.userId?.firstName); // Debug log
+      console.log('Server response lastName (User):', updatedDoctor.userId?.lastName); // Debug log
+
+      if (updatedDoctor) {
+        setFirstName(updatedDoctor.userId?.firstName || updatedDoctor.firstName || firstName);
+        setLastName(updatedDoctor.userId?.lastName || updatedDoctor.lastName || lastName);
+        setEmail(updatedDoctor.userId?.email || updatedDoctor.email || '');
+        setProfilePicture(updatedDoctor.profilePicture || updatedDoctor.userId?.profilePicture || '');
+        setAge(updatedDoctor.age || '');
+        setContactNumber(updatedDoctor.contactNumber || '');
+        setSpecialization(updatedDoctor.specialization || '');
+        setExperience(updatedDoctor.experience || '');
+        setQualification(updatedDoctor.qualification || '');
+        setHospitalName(updatedDoctor.hospitalName || '');
+        setAddress(updatedDoctor.address || '');
+        setAbout(updatedDoctor.about || '');
+
+        dispatch(addUser({
+          ...user,
+          _id: userId,
+          firstName: updatedDoctor.userId?.firstName || updatedDoctor.firstName || firstName,
+          lastName: updatedDoctor.userId?.lastName || updatedDoctor.lastName || lastName,
+          email: updatedDoctor.userId?.email || updatedDoctor.email,
+          profilePicture: updatedDoctor.profilePicture || updatedDoctor.userId?.profilePicture,
+          age: updatedDoctor.age,
+          contactNumber: updatedDoctor.contactNumber,
+          specialization: updatedDoctor.specialization,
+          experience: updatedDoctor.experience,
+          qualification: updatedDoctor.qualification,
+          hospitalName: updatedDoctor.hospitalName,
+          address: updatedDoctor.address,
+          about: updatedDoctor.about,
+        }));
+      }
 
       setError('');
       setToast(true);
       setTimeout(() => setToast(false), 3000);
-      setImageError(false); // Reset image error on successful update
+      setImageError(false);
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to update profile');
+      console.error('Update error:', err.response || err);
+      setError(
+        err.response?.status === 404
+          ? 'Doctor profile not found'
+          : err.response?.data?.message || err.response?.data?.error || 'Failed to update profile'
+      );
       setToast(true);
       setTimeout(() => setToast(false), 3000);
       if (err.response?.status === 401 || err.response?.status === 403) {
         dispatch(removeUser());
         navigate('/login');
       }
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  // Handle image load error
   const handleImageError = () => {
     setImageError(true);
   };
@@ -212,7 +286,6 @@ const DoctorProfile = () => {
             <Menu className="w-6 h-6" />
           </button>
           <div className="bg-white shadow-md rounded-lg p-6">
-            {/* Circular Profile Picture */}
             <div className="flex justify-center mb-6">
               {profilePicture && !imageError ? (
                 <img
@@ -223,7 +296,7 @@ const DoctorProfile = () => {
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 border-2 border-gray-300">
-                  No Image
+                  {imageError ? 'Invalid Image URL' : 'No Image'}
                 </div>
               )}
             </div>
@@ -255,11 +328,11 @@ const DoctorProfile = () => {
                 <input
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
-                  placeholder="Profile Picture URL"
+                  placeholder="Profile Picture URL (jpg, jpeg, png, gif)"
                   value={profilePicture}
                   onChange={(e) => {
                     setProfilePicture(e.target.value);
-                    setImageError(false); // Reset error when URL changes
+                    setImageError(false);
                   }}
                 />
               </label>
@@ -280,7 +353,7 @@ const DoctorProfile = () => {
                   placeholder="Age"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  min="18"
+                  min="22"
                   max="100"
                 />
               </label>
@@ -290,8 +363,8 @@ const DoctorProfile = () => {
                   type="tel"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Phone Number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
                 />
               </label>
               <label className="block">
@@ -365,9 +438,10 @@ const DoctorProfile = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                  disabled={isUpdating}
                 >
-                  Update
+                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Update'}
                 </button>
               </div>
             </form>
