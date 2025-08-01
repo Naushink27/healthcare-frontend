@@ -9,6 +9,7 @@ import PatientSidebar from './PatientSidebar';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import DOMPurify from 'dompurify';
+import { combineReducers } from '@reduxjs/toolkit';
 
 const BookAppointment = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -96,13 +97,19 @@ const BookAppointment = () => {
       setTimeout(() => setToast(false), 3000);
       return;
     }
-
+console.log('Submitting appointment with data:', {
+      patientId,
+      appointmentDate: appointmentDate.toISOString(),
+      appointmentTime: appointmentTime.toISOString(),
+      description,
+    });
     // Format time to HH:MM
     const formattedTime = appointmentTime
       ? `${appointmentTime.getHours().toString().padStart(2, '0')}:${appointmentTime.getMinutes().toString().padStart(2, '0')}`
       : '';
     if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(formattedTime)) {
       setError('Please select a valid time');
+      console.error('Invalid time format:', formattedTime);
       setToast(true);
       setTimeout(() => setToast(false), 3000);
       return;

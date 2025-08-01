@@ -16,9 +16,13 @@ import DoctorAppointments from './components/DoctorAppointments';
 import PatientFeedback from './components/PatientFeedback';
 import PatientFeedbackForm from './components/PatientFeedbackForm';
 import DoctorFeedback from './components/DoctorFeedback';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
+    <>
+           <Toaster position="top-right" reverseOrder={false} />
+
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
@@ -39,6 +43,7 @@ function App() {
         <Route path="/doctor/feedback" element={<DoctorFeedback />} />
       </Route>
     </Routes>
+    </>
   );
 }
 

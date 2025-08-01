@@ -13,7 +13,13 @@ const About = () => {
             About HealthCare Pro
           </h2>
           <p className="text-gray-600 mb-6 text-sm sm:text-base">
-            At HealthCare Pro, we are dedicated to making healthcare accessible and efficient. Our platform allows you to book appointments, consult with doctors online, and securely manage your medical records—all in one place.
+            HealthCare Pro is a simple yet powerful web platform designed to connect patients and doctors—especially for hospitals or clinics that lack their own online systems.
+            <br /><br />
+            Patients can update their profile, explore available doctors, and book appointments easily. Once the appointment is confirmed, they can visit the respective hospital for check-ups and later provide feedback based on their experience.
+            <br /><br />
+            Doctors can manage their profiles, view all booked appointments, and accept them as per their availability. This ensures better schedule planning and smooth communication.
+            <br /><br />
+            Acting as a middleware between patients and offline hospitals, HealthCare Pro helps streamline the appointment process, saving time and improving accessibility—especially in areas where digital health systems are still missing.
           </p>
           <button className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
             Learn More

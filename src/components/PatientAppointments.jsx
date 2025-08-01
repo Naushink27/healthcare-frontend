@@ -97,7 +97,9 @@ const PatientAppointments = () => {
   }, [user, navigate, dispatch]);
 
   const getAppointmentTime = (appt) => {
+    console.log(appt);
     if (appt.appointmentTime) {
+      
       return appt.appointmentTime.split(':').slice(0, 2).join(':');
     }
     return format(parseISO(appt.appointmentDate), 'HH:mm');
