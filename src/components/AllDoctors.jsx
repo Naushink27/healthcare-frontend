@@ -44,10 +44,8 @@ const AllDoctors = () => {
           throw new Error('No doctors found');
         }
         setDoctors(doctorsData);
-        console.log('Doctors fetched successfully:', doctorsData);
         setError('');
       } catch (err) {
-        console.error('Fetch doctors error:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'No doctors found'
