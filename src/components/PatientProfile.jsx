@@ -50,11 +50,7 @@ const PatientProfile = () => {
           throw new Error('Patient profile not found');
         }
 
-        console.log('Fetched patient data:', patient); // Debug log
-        console.log('Fetched profile picture (Patient):', patient.profilePicture); // Debug log
-        console.log('Fetched profile picture (User):', patient.userId.profilePicture); // Debug log
-        console.log('Fetched firstName (User):', patient.userId.firstName); // Debug log
-        console.log('Fetched lastName (User):', patient.userId.lastName); // Debug log
+        
 
         setFirstName(patient.userId.firstName || '');
         setLastName(patient.userId.lastName || '');
@@ -84,7 +80,6 @@ const PatientProfile = () => {
 
         setError('');
       } catch (err) {
-        console.error('Profile fetch error:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'Patient profile not found'
@@ -173,7 +168,6 @@ const PatientProfile = () => {
         updateData.profilePicture = profilePicture;
       }
 
-      console.log('Sending update with data:', updateData); // Debug log
       const response = await axios.patch(
         `${BASE_URL}/patient/update/profile/${userId}`,
         updateData,
@@ -181,11 +175,7 @@ const PatientProfile = () => {
       );
 
       const updatedPatient = response.data?.patient;
-      console.log('Server response patient data:', updatedPatient); // Debug log
-      console.log('Server response profile picture (Patient):', updatedPatient.profilePicture); // Debug log
-      console.log('Server response profile picture (User):', updatedPatient.userId.profilePicture); // Debug log
-      console.log('Server response firstName (User):', updatedPatient.userId.firstName); // Debug log
-      console.log('Server response lastName (User):', updatedPatient.userId.lastName); // Debug log
+      
 
       if (updatedPatient) {
         setFirstName(updatedPatient.userId.firstName || firstName);
@@ -220,7 +210,6 @@ const PatientProfile = () => {
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
-      console.error('Update error:', err.response || err);
       setError(
         err.response?.status === 404
           ? 'Patient profile not found'

@@ -16,7 +16,6 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  console.log(user);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -26,7 +25,6 @@ const DoctorDashboard = () => {
     try {
       await axios.post(`${BASE_URL}/logout`, {}, { withCredentials: true });
     } catch (error) {
-      console.error('Logout failed:', error);
     }
     dispatch(removeUser());
     navigate('/login');
@@ -36,10 +34,8 @@ const DoctorDashboard = () => {
     const fetchAppointments = async () => {
       try {
         const res = await axios.get(BASE_URL + '/doctor/check/appointments/' + user._id, { withCredentials: true });
-        console.log('Appointments fetched:', res.data.appointments);
         setAppointments(res.data.appointments);
       } catch (error) {
-        console.error('Error fetching appointments:', error);
       }
     };
     fetchAppointments();

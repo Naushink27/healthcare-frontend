@@ -25,7 +25,6 @@ const Contact = () => {
   toast.success('Message sent successfully!');
       setFormData({ name: '', email: '', message: '' }); // reset form
     } catch (error) {
-      console.error(error);
 toast.error('Failed to send message. Try again.');
     }
   };

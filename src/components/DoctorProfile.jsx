@@ -52,13 +52,7 @@ const DoctorProfile = () => {
           throw new Error('Doctor profile not found');
         }
 
-        console.log('Fetched doctor data:', doctor); // Debug log
-        console.log('Fetched profile picture (Doctor):', doctor.profilePicture); // Debug log
-        console.log('Fetched profile picture (User):', doctor.userId?.profilePicture); // Debug log
-        console.log('Fetched firstName (Doctor):', doctor.firstName); // Debug log
-        console.log('Fetched lastName (Doctor):', doctor.lastName); // Debug log
-        console.log('Fetched firstName (User):', doctor.userId?.firstName); // Debug log
-        console.log('Fetched lastName (User):', doctor.userId?.lastName); // Debug log
+        
 
         setFirstName(doctor.userId?.firstName || doctor.firstName || '');
         setLastName(doctor.userId?.lastName || doctor.lastName || '');
@@ -92,7 +86,6 @@ const DoctorProfile = () => {
 
         setError('');
       } catch (err) {
-        console.error('Profile fetch error:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'Doctor profile not found'
@@ -180,7 +173,6 @@ const DoctorProfile = () => {
         updateData.profilePicture = profilePicture;
       }
 
-      console.log('Sending update with data:', updateData); // Debug log
       const response = await axios.patch(
         `${BASE_URL}/doctor/update/profile/${userId}`,
         updateData,
@@ -188,13 +180,7 @@ const DoctorProfile = () => {
       );
 
       const updatedDoctor = response.data?.doctor;
-      console.log('Server response doctor data:', updatedDoctor); // Debug log
-      console.log('Server response profile picture (Doctor):', updatedDoctor.profilePicture); // Debug log
-      console.log('Server response profile picture (User):', updatedDoctor.userId?.profilePicture); // Debug log
-      console.log('Server response firstName (Doctor):', updatedDoctor.firstName); // Debug log
-      console.log('Server response lastName (Doctor):', updatedDoctor.lastName); // Debug log
-      console.log('Server response firstName (User):', updatedDoctor.userId?.firstName); // Debug log
-      console.log('Server response lastName (User):', updatedDoctor.userId?.lastName); // Debug log
+      
 
       if (updatedDoctor) {
         setFirstName(updatedDoctor.userId?.firstName || updatedDoctor.firstName || firstName);
@@ -233,7 +219,6 @@ const DoctorProfile = () => {
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
-      console.error('Update error:', err.response || err);
       setError(
         err.response?.status === 404
           ? 'Doctor profile not found'

@@ -25,7 +25,6 @@ const BookAppointment = () => {
   const dispatch = useDispatch();
   const { doctorId } = useParams();
   const user = useSelector((store) => store.user.user);
-  console.log('User from Redux store:', user);
   const patientId = user?._id;
 
   const toggleSidebar = () => {
@@ -56,20 +55,16 @@ const BookAppointment = () => {
 
       try {
         setLoading(true);
-        console.log('Fetching doctor with ID:', doctorId);
         const response = await axios.get(`${BASE_URL}/doctor/get/profile/${doctorId}`, {
           withCredentials: true,
         });
-        console.log('Full response:', response.data);
         const doctorData = response.data?.doctor;
-        console.log('Doctor data:', doctorData);
         if (!doctorData) {
           throw new Error('Doctor not found');
         }
         setDoctor(doctorData);
         setError('');
       } catch (err) {
-        console.error('Fetch doctor error:', err.response ? err.response.data : err);
         setError(
           err.response?.status === 404
             ? 'Doctor not found'
@@ -97,19 +92,13 @@ const BookAppointment = () => {
       setTimeout(() => setToast(false), 3000);
       return;
     }
-console.log('Submitting appointment with data:', {
-      patientId,
-      appointmentDate: appointmentDate.toISOString(),
-      appointmentTime: appointmentTime.toISOString(),
-      description,
-    });
+
     // Format time to HH:MM
     const formattedTime = appointmentTime
       ? `${appointmentTime.getHours().toString().padStart(2, '0')}:${appointmentTime.getMinutes().toString().padStart(2, '0')}`
       : '';
     if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(formattedTime)) {
       setError('Please select a valid time');
-      console.error('Invalid time format:', formattedTime);
       setToast(true);
       setTimeout(() => setToast(false), 3000);
       return;
@@ -135,7 +124,6 @@ console.log('Submitting appointment with data:', {
         },
         { withCredentials: true }
       );
-      console.log('Appointment response:', response.data);
       setError('');
       setToast(true);
       setTimeout(() => {
@@ -143,7 +131,6 @@ console.log('Submitting appointment with data:', {
         navigate('/patient/appointments');
       }, 2000);
     } catch (err) {
-      console.error('Book appointment error:', err.response ? err.response.data : err);
       setError(
         err.response?.status === 404
           ? 'Doctor or patient not found'

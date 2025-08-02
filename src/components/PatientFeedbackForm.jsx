@@ -61,10 +61,8 @@ const PatientFeedbackForm = () => {
           throw new Error('Doctor not found');
         }
         setDoctor(doctorData);
-        console.log('Doctor details fetched successfully:', doctorData);
         setError('');
       } catch (err) {
-        console.error('Error fetching doctor details:', err.response || err);
         setError(
           err.response?.status === 404
             ? 'Doctor not found'
@@ -112,7 +110,6 @@ const PatientFeedbackForm = () => {
         navigate('/patient/dashboard');
       }, 2000);
     } catch (err) {
-      console.error('Submit feedback error:', err.response || err);
       setError(
         err.response?.status === 404
           ? 'Doctor or patient not found'

@@ -23,7 +23,6 @@ const PatientDashboard = () => {
     try {
       await axios.post(BASE_URL + '/logout', {}, { withCredentials: true });
     } catch (error) {
-      console.error('Logout failed:', error);
     }
     dispatch(removeUser());
     navigate('/login');
