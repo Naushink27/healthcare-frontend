@@ -14,6 +14,7 @@ const PatientProfile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((store) => store.user.user);
+
   const userId = user?._id;
 
   const [firstName, setFirstName] = useState('');
@@ -22,8 +23,8 @@ const PatientProfile = () => {
   const [profilePicture, setProfilePicture] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
-  const [ContactNumber, setContactNumber] = useState('');
-  const [MedicalHistory, setMedicalHistory] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [medicalHistory, setMedicalHistory] = useState('');
   const [address, setAddress] = useState('');
   const [bloodGroup, setBloodGroup] = useState('');
   const [error, setError] = useState('');
@@ -45,17 +46,17 @@ const PatientProfile = () => {
         const response = await axios.get(`${BASE_URL}/patient/get/profile/${userId}`, {
           withCredentials: true,
         });
+        console.log('Fetch response:', response.data);
         const patient = response.data?.patient;
         if (!patient) {
           throw new Error('Patient profile not found');
         }
 
-        
-
+        // Set state from patient data
         setFirstName(patient.userId.firstName || '');
         setLastName(patient.userId.lastName || '');
         setEmail(patient.userId.email || '');
-        setProfilePicture(patient.profilePicture || patient.userId.profilePicture || '');
+        setProfilePicture(patient.userId.profilePicture || '');
         setAge(patient.age || '');
         setGender(patient.gender || '');
         setContactNumber(patient.ContactNumber || '');
@@ -63,23 +64,24 @@ const PatientProfile = () => {
         setAddress(patient.address || '');
         setBloodGroup(patient.bloodGroup || '');
 
+        // Update Redux store
         dispatch(addUser({
-          ...user,
           _id: userId,
-          firstName: patient.userId.firstName,
-          lastName: patient.userId.lastName,
-          email: patient.userId.email,
-          profilePicture: patient.profilePicture || patient.userId.profilePicture,
-          age: patient.age,
-          gender: patient.gender,
-          ContactNumber: patient.ContactNumber,
-          MedicalHistory: patient.MedicalHistory,
-          bloodGroup: patient.bloodGroup,
-          address: patient.address,
+          firstName: patient.userId.firstName || '',
+          lastName: patient.userId.lastName || '',
+          email: patient.userId.email || '',
+          profilePicture: patient.userId.profilePicture || '',
+          age: patient.age || '',
+          gender: patient.gender || '',
+          contactNumber: patient.ContactNumber || '',
+          medicalHistory: patient.MedicalHistory || '',
+          bloodGroup: patient.bloodGroup || '',
+          address: patient.address || '',
         }));
 
         setError('');
       } catch (err) {
+        console.error('Fetch error:', err);
         setError(
           err.response?.status === 404
             ? 'Patient profile not found'
@@ -119,7 +121,7 @@ const PatientProfile = () => {
     if (!firstName.trim() || !lastName.trim()) {
       return 'First name and last name are required';
     }
-    if (!MedicalHistory.trim()) {
+    if (!medicalHistory.trim()) {
       return 'Medical history is required';
     }
     if (!bloodGroup.trim()) {
@@ -131,7 +133,7 @@ const PatientProfile = () => {
     if (age && (isNaN(age) || age < 18 || age > 100)) {
       return 'Age must be between 18 and 100';
     }
-    if (ContactNumber && !/^\d{10}$/.test(ContactNumber)) {
+    if (contactNumber && !/^\d{10}$/.test(contactNumber)) {
       return 'Phone number must be 10 digits';
     }
     if (profilePicture && !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(profilePicture)) {
@@ -152,36 +154,34 @@ const PatientProfile = () => {
 
     try {
       setIsUpdating(true);
-      const sanitizedMedicalHistory = DOMPurify.sanitize(MedicalHistory);
+      const sanitizedMedicalHistory = DOMPurify.sanitize(medicalHistory);
       const sanitizedAddress = DOMPurify.sanitize(address);
       const updateData = {
         firstName,
         lastName,
         age,
         gender,
-        ContactNumber,
+        ContactNumber: contactNumber,
         bloodGroup,
         MedicalHistory: sanitizedMedicalHistory,
         address: sanitizedAddress,
+        profilePicture,
       };
-      if (profilePicture) {
-        updateData.profilePicture = profilePicture;
-      }
 
       const response = await axios.patch(
         `${BASE_URL}/patient/update/profile/${userId}`,
         updateData,
         { withCredentials: true }
       );
+      console.log('Update response:', response.data);
 
       const updatedPatient = response.data?.patient;
-      
 
       if (updatedPatient) {
         setFirstName(updatedPatient.userId.firstName || firstName);
         setLastName(updatedPatient.userId.lastName || lastName);
         setEmail(updatedPatient.userId.email || '');
-        setProfilePicture(updatedPatient.profilePicture || updatedPatient.userId.profilePicture || '');
+        setProfilePicture(updatedPatient.userId.profilePicture || '');
         setAge(updatedPatient.age || '');
         setGender(updatedPatient.gender || '');
         setContactNumber(updatedPatient.ContactNumber || '');
@@ -190,18 +190,17 @@ const PatientProfile = () => {
         setBloodGroup(updatedPatient.bloodGroup || '');
 
         dispatch(addUser({
-          ...user,
           _id: userId,
           firstName: updatedPatient.userId.firstName || firstName,
           lastName: updatedPatient.userId.lastName || lastName,
-          email: updatedPatient.userId.email,
-          profilePicture: updatedPatient.profilePicture || updatedPatient.userId.profilePicture,
-          age: updatedPatient.age,
-          gender: updatedPatient.gender,
-          ContactNumber: updatedPatient.ContactNumber,
-          MedicalHistory: updatedPatient.MedicalHistory,
-          bloodGroup: updatedPatient.bloodGroup,
-          address: updatedPatient.address,
+          email: updatedPatient.userId.email || '',
+          profilePicture: updatedPatient.userId.profilePicture || '',
+          age: updatedPatient.age || '',
+          gender: updatedPatient.gender || '',
+          contactNumber: updatedPatient.ContactNumber || '',
+          medicalHistory: updatedPatient.MedicalHistory || '',
+          bloodGroup: updatedPatient.bloodGroup || '',
+          address: updatedPatient.address || '',
         }));
       }
 
@@ -210,6 +209,7 @@ const PatientProfile = () => {
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
+      console.error('Update error:', err);
       setError(
         err.response?.status === 404
           ? 'Patient profile not found'
@@ -227,6 +227,7 @@ const PatientProfile = () => {
   };
 
   const handleImageError = () => {
+    console.log('Image failed to load:', profilePicture);
     setImageError(true);
   };
 
@@ -300,6 +301,7 @@ const PatientProfile = () => {
                 />
               </label>
               <label className="block">
+                
                 <span className="text-sm font-medium">Profile Picture URL</span>
                 <input
                   type="text"
@@ -352,7 +354,7 @@ const PatientProfile = () => {
                   type="tel"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Phone Number"
-                  value={ContactNumber}
+                  value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
                 />
               </label>
@@ -362,7 +364,7 @@ const PatientProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Medical history (e.g., diabetes, hypertension, etc.)"
-                  value={MedicalHistory}
+                  value={medicalHistory}
                   onChange={(e) => setMedicalHistory(e.target.value)}
                 />
               </label>

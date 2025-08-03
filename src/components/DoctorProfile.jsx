@@ -47,17 +47,16 @@ const DoctorProfile = () => {
         const response = await axios.get(`${BASE_URL}/doctor/get/profile/${userId}`, {
           withCredentials: true,
         });
+        console.log('Fetch response:', response.data);
         const doctor = response.data?.doctor;
         if (!doctor) {
           throw new Error('Doctor profile not found');
         }
 
-        
-
-        setFirstName(doctor.userId?.firstName || doctor.firstName || '');
-        setLastName(doctor.userId?.lastName || doctor.lastName || '');
-        setEmail(doctor.userId?.email || doctor.email || '');
-        setProfilePicture(doctor.profilePicture || doctor.userId?.profilePicture || '');
+        setFirstName(doctor.userId.firstName || '');
+        setLastName(doctor.userId.lastName || '');
+        setEmail(doctor.userId.email || '');
+        setProfilePicture(doctor.userId.profilePicture || '');
         setAge(doctor.age || '');
         setContactNumber(doctor.contactNumber || '');
         setSpecialization(doctor.specialization || '');
@@ -68,24 +67,24 @@ const DoctorProfile = () => {
         setAbout(doctor.about || '');
 
         dispatch(addUser({
-          ...user,
           _id: userId,
-          firstName: doctor.userId?.firstName || doctor.firstName,
-          lastName: doctor.userId?.lastName || doctor.lastName,
-          email: doctor.userId?.email || doctor.email,
-          profilePicture: doctor.profilePicture || doctor.userId?.profilePicture,
-          age: doctor.age,
-          contactNumber: doctor.contactNumber,
-          specialization: doctor.specialization,
-          experience: doctor.experience,
-          qualification: doctor.qualification,
-          hospitalName: doctor.hospitalName,
-          address: doctor.address,
-          about: doctor.about,
+          firstName: doctor.userId.firstName || '',
+          lastName: doctor.userId.lastName || '',
+          email: doctor.userId.email || '',
+          profilePicture: doctor.userId.profilePicture || '',
+          age: doctor.age || '',
+          contactNumber: doctor.contactNumber || '',
+          specialization: doctor.specialization || '',
+          experience: doctor.experience || '',
+          qualification: doctor.qualification || '',
+          hospitalName: doctor.hospitalName || '',
+          address: doctor.address || '',
+          about: doctor.about || '',
         }));
 
         setError('');
       } catch (err) {
+        console.error('Fetch error:', err);
         setError(
           err.response?.status === 404
             ? 'Doctor profile not found'
@@ -168,25 +167,23 @@ const DoctorProfile = () => {
         address: sanitizedAddress,
         about: sanitizedAbout,
         hospitalName,
+        profilePicture, // Always include, even if empty
       };
-      if (profilePicture) {
-        updateData.profilePicture = profilePicture;
-      }
 
       const response = await axios.patch(
         `${BASE_URL}/doctor/update/profile/${userId}`,
         updateData,
         { withCredentials: true }
       );
+      console.log('Update response:', response.data);
 
       const updatedDoctor = response.data?.doctor;
-      
 
       if (updatedDoctor) {
-        setFirstName(updatedDoctor.userId?.firstName || updatedDoctor.firstName || firstName);
-        setLastName(updatedDoctor.userId?.lastName || updatedDoctor.lastName || lastName);
-        setEmail(updatedDoctor.userId?.email || updatedDoctor.email || '');
-        setProfilePicture(updatedDoctor.profilePicture || updatedDoctor.userId?.profilePicture || '');
+        setFirstName(updatedDoctor.userId.firstName || firstName);
+        setLastName(updatedDoctor.userId.lastName || lastName);
+        setEmail(updatedDoctor.userId.email || '');
+        setProfilePicture(updatedDoctor.userId.profilePicture || '');
         setAge(updatedDoctor.age || '');
         setContactNumber(updatedDoctor.contactNumber || '');
         setSpecialization(updatedDoctor.specialization || '');
@@ -197,20 +194,19 @@ const DoctorProfile = () => {
         setAbout(updatedDoctor.about || '');
 
         dispatch(addUser({
-          ...user,
           _id: userId,
-          firstName: updatedDoctor.userId?.firstName || updatedDoctor.firstName || firstName,
-          lastName: updatedDoctor.userId?.lastName || updatedDoctor.lastName || lastName,
-          email: updatedDoctor.userId?.email || updatedDoctor.email,
-          profilePicture: updatedDoctor.profilePicture || updatedDoctor.userId?.profilePicture,
-          age: updatedDoctor.age,
-          contactNumber: updatedDoctor.contactNumber,
-          specialization: updatedDoctor.specialization,
-          experience: updatedDoctor.experience,
-          qualification: updatedDoctor.qualification,
-          hospitalName: updatedDoctor.hospitalName,
-          address: updatedDoctor.address,
-          about: updatedDoctor.about,
+          firstName: updatedDoctor.userId.firstName || firstName,
+          lastName: updatedDoctor.userId.lastName || lastName,
+          email: updatedDoctor.userId.email || '',
+          profilePicture: updatedDoctor.userId.profilePicture || '',
+          age: updatedDoctor.age || '',
+          contactNumber: updatedDoctor.contactNumber || '',
+          specialization: updatedDoctor.specialization || '',
+          experience: updatedDoctor.experience || '',
+          qualification: updatedDoctor.qualification || '',
+          hospitalName: updatedDoctor.hospitalName || '',
+          address: updatedDoctor.address || '',
+          about: updatedDoctor.about || '',
         }));
       }
 
@@ -219,6 +215,7 @@ const DoctorProfile = () => {
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
+      console.error('Update error:', err);
       setError(
         err.response?.status === 404
           ? 'Doctor profile not found'
@@ -236,6 +233,7 @@ const DoctorProfile = () => {
   };
 
   const handleImageError = () => {
+    console.log('Image failed to load:', profilePicture);
     setImageError(true);
   };
 

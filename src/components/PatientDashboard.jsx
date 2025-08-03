@@ -105,7 +105,7 @@ const PatientDashboard = () => {
                 Quick Actions
               </h2>
               <div className="space-y-3">
-                <Link to="/patient/appointment">
+                <Link to="/patient/doctors">
                   <button className="w-full px-4 py-2 bg-purple-50 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-100 transition-all text-base">
                     Schedule Appointment
                   </button>
