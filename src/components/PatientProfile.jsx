@@ -46,7 +46,6 @@ const PatientProfile = () => {
         const response = await axios.get(`${BASE_URL}/patient/get/profile/${userId}`, {
           withCredentials: true,
         });
-        console.log('Fetch response:', response.data);
         const patient = response.data?.patient;
         if (!patient) {
           throw new Error('Patient profile not found');
@@ -81,7 +80,6 @@ const PatientProfile = () => {
 
         setError('');
       } catch (err) {
-        console.error('Fetch error:', err);
         setError(
           err.response?.status === 404
             ? 'Patient profile not found'
@@ -130,7 +128,7 @@ const PatientProfile = () => {
     if (!gender.trim()) {
       return 'Gender is required';
     }
-    if (age && (isNaN(age) || age < 18 || age > 100)) {
+    if (age && (isNaN(age) || age < 0|| age > 100)) {
       return 'Age must be between 18 and 100';
     }
     if (contactNumber && !/^\d{10}$/.test(contactNumber)) {
@@ -173,7 +171,6 @@ const PatientProfile = () => {
         updateData,
         { withCredentials: true }
       );
-      console.log('Update response:', response.data);
 
       const updatedPatient = response.data?.patient;
 
@@ -209,7 +206,6 @@ const PatientProfile = () => {
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
-      console.error('Update error:', err);
       setError(
         err.response?.status === 404
           ? 'Patient profile not found'
@@ -227,7 +223,6 @@ const PatientProfile = () => {
   };
 
   const handleImageError = () => {
-    console.log('Image failed to load:', profilePicture);
     setImageError(true);
   };
 

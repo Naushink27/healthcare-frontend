@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DoctorSidebar from './DoctorSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,93 +16,89 @@ const DoctorProfile = () => {
   const user = useSelector((store) => store.user.user);
   const userId = user?._id;
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [profilePicture, setProfilePicture] = useState('');
-  const [age, setAge] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const [experience, setExperience] = useState('');
-  const [qualification, setQualification] = useState('');
-  const [hospitalName, setHospitalName] = useState('');
-  const [address, setAddress] = useState('');
-  const [about, setAbout] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    profilePicture: '',
+    age: '',
+    contactNumber: '',
+    specialization: '',
+    experience: '',
+    qualification: '',
+    hospitalName: '',
+    address: '',
+    about: '',
+  });
   const [error, setError] = useState('');
   const [toast, setToast] = useState(false);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    const fetchDoctorProfile = async () => {
-      if (!userId) {
-        setError('Please log in to view your profile');
-        setLoading(false);
+  // Memoized fetchDoctorProfile
+  const fetchDoctorProfile = useCallback(async () => {
+    if (!userId) {
+      setError('Please log in to view your profile');
+      setLoading(false);
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get(`${BASE_URL}/doctor/get/profile/${userId}`, {
+        withCredentials: true,
+      });
+
+      const doctor = response.data?.doctor;
+      if (!doctor) {
+        throw new Error('Doctor profile not found');
+      }
+
+      // Update form data
+      const newFormData = {
+        firstName: doctor.userId.firstName || '',
+        lastName: doctor.userId.lastName || '',
+        email: doctor.userId.email || '',
+        profilePicture: doctor.userId.profilePicture || '',
+        age: doctor.age ? String(doctor.age) : '', // Ensure string for input
+        contactNumber: doctor.contactNumber || '',
+        specialization: doctor.specialization || '',
+        experience: doctor.experience ? String(doctor.experience) : '', // Ensure string for input
+        qualification: doctor.qualification || '',
+        hospitalName: doctor.hospitalName || '',
+        address: doctor.address || '',
+        about: doctor.about || '',
+      };
+      setFormData(newFormData);
+
+      // Dispatch to Redux
+      dispatch(addUser({
+        _id: userId,
+        ...newFormData,
+      }));
+
+      setError('');
+    } catch (err) {
+      setError(
+        err.response?.status === 404
+          ? 'Doctor profile not found'
+          : err.response?.data?.message || err.message || 'Failed to fetch profile'
+      );
+      setToast(true);
+      setTimeout(() => setToast(false), 3000);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        dispatch(removeUser());
         navigate('/login');
-        return;
       }
-
-      try {
-        setLoading(true);
-        const response = await axios.get(`${BASE_URL}/doctor/get/profile/${userId}`, {
-          withCredentials: true,
-        });
-        console.log('Fetch response:', response.data);
-        const doctor = response.data?.doctor;
-        if (!doctor) {
-          throw new Error('Doctor profile not found');
-        }
-
-        setFirstName(doctor.userId.firstName || '');
-        setLastName(doctor.userId.lastName || '');
-        setEmail(doctor.userId.email || '');
-        setProfilePicture(doctor.userId.profilePicture || '');
-        setAge(doctor.age || '');
-        setContactNumber(doctor.contactNumber || '');
-        setSpecialization(doctor.specialization || '');
-        setExperience(doctor.experience || '');
-        setQualification(doctor.qualification || '');
-        setHospitalName(doctor.hospitalName || '');
-        setAddress(doctor.address || '');
-        setAbout(doctor.about || '');
-
-        dispatch(addUser({
-          _id: userId,
-          firstName: doctor.userId.firstName || '',
-          lastName: doctor.userId.lastName || '',
-          email: doctor.userId.email || '',
-          profilePicture: doctor.userId.profilePicture || '',
-          age: doctor.age || '',
-          contactNumber: doctor.contactNumber || '',
-          specialization: doctor.specialization || '',
-          experience: doctor.experience || '',
-          qualification: doctor.qualification || '',
-          hospitalName: doctor.hospitalName || '',
-          address: doctor.address || '',
-          about: doctor.about || '',
-        }));
-
-        setError('');
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(
-          err.response?.status === 404
-            ? 'Doctor profile not found'
-            : err.response?.data?.message || err.message || 'Failed to fetch profile'
-        );
-        setToast(true);
-        setTimeout(() => setToast(false), 3000);
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          dispatch(removeUser());
-          navigate('/login');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctorProfile();
+    } finally {
+      setLoading(false);
+    }
   }, [userId, dispatch, navigate]);
+
+  useEffect(() => {
+    fetchDoctorProfile();
+  }, [fetchDoctorProfile]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -121,22 +117,22 @@ const DoctorProfile = () => {
   };
 
   const validateForm = () => {
-    if (!firstName.trim() || !lastName.trim()) {
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
       return 'First name and last name are required';
     }
-    if (!specialization.trim() || !qualification.trim()) {
+    if (!formData.specialization.trim() || !formData.qualification.trim()) {
       return 'Specialization and qualification are required';
     }
-    if (age && (isNaN(age) || age < 22 || age > 100)) {
+    if (formData.age && (isNaN(formData.age) || Number(formData.age) < 22 || Number(formData.age) > 100)) {
       return 'Age must be between 22 and 100';
     }
-    if (experience && (isNaN(experience) || experience < 0)) {
+    if (formData.experience && (isNaN(formData.experience) || Number(formData.experience) < 0)) {
       return 'Experience must be a positive number';
     }
-    if (contactNumber && !/^\d{10}$/.test(contactNumber)) {
+    if (formData.contactNumber && !/^\d{10}$/.test(formData.contactNumber)) {
       return 'Phone number must be 10 digits';
     }
-    if (profilePicture && !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(profilePicture)) {
+    if (formData.profilePicture && !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(formData.profilePicture)) {
       return 'Profile picture must be a valid image URL (jpg, jpeg, png, or gif)';
     }
     return '';
@@ -154,20 +150,20 @@ const DoctorProfile = () => {
 
     try {
       setIsUpdating(true);
-      const sanitizedAbout = DOMPurify.sanitize(about);
-      const sanitizedAddress = DOMPurify.sanitize(address);
+      const sanitizedAbout = DOMPurify.sanitize(formData.about);
+      const sanitizedAddress = DOMPurify.sanitize(formData.address);
       const updateData = {
-        firstName,
-        lastName,
-        age,
-        specialization,
-        experience,
-        qualification,
-        contactNumber,
-        address: sanitizedAddress,
-        about: sanitizedAbout,
-        hospitalName,
-        profilePicture, // Always include, even if empty
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        age: formData.age ? Number(formData.age) : undefined,
+        specialization: formData.specialization.trim(),
+        experience: formData.experience ? Number(formData.experience) : undefined,
+        qualification: formData.qualification.trim(),
+        contactNumber: formData.contactNumber ? formData.contactNumber.trim() : undefined,
+        address: sanitizedAddress || undefined,
+        about: sanitizedAbout || undefined,
+        hospitalName: formData.hospitalName ? formData.hospitalName.trim() : undefined,
+        profilePicture: formData.profilePicture ? formData.profilePicture.trim() : undefined,
       };
 
       const response = await axios.patch(
@@ -175,47 +171,40 @@ const DoctorProfile = () => {
         updateData,
         { withCredentials: true }
       );
-      console.log('Update response:', response.data);
 
       const updatedDoctor = response.data?.doctor;
-
-      if (updatedDoctor) {
-        setFirstName(updatedDoctor.userId.firstName || firstName);
-        setLastName(updatedDoctor.userId.lastName || lastName);
-        setEmail(updatedDoctor.userId.email || '');
-        setProfilePicture(updatedDoctor.userId.profilePicture || '');
-        setAge(updatedDoctor.age || '');
-        setContactNumber(updatedDoctor.contactNumber || '');
-        setSpecialization(updatedDoctor.specialization || '');
-        setExperience(updatedDoctor.experience || '');
-        setQualification(updatedDoctor.qualification || '');
-        setHospitalName(updatedDoctor.hospitalName || '');
-        setAddress(updatedDoctor.address || '');
-        setAbout(updatedDoctor.about || '');
-
-        dispatch(addUser({
-          _id: userId,
-          firstName: updatedDoctor.userId.firstName || firstName,
-          lastName: updatedDoctor.userId.lastName || lastName,
-          email: updatedDoctor.userId.email || '',
-          profilePicture: updatedDoctor.userId.profilePicture || '',
-          age: updatedDoctor.age || '',
-          contactNumber: updatedDoctor.contactNumber || '',
-          specialization: updatedDoctor.specialization || '',
-          experience: updatedDoctor.experience || '',
-          qualification: updatedDoctor.qualification || '',
-          hospitalName: updatedDoctor.hospitalName || '',
-          address: updatedDoctor.address || '',
-          about: updatedDoctor.about || '',
-        }));
+      if (!updatedDoctor) {
+        throw new Error('No doctor data returned from update');
       }
+
+      // Update form data with response
+      const newFormData = {
+        firstName: updatedDoctor.userId.firstName || formData.firstName,
+        lastName: updatedDoctor.userId.lastName || formData.lastName,
+        email: updatedDoctor.userId.email || formData.email,
+        profilePicture: updatedDoctor.userId.profilePicture || formData.profilePicture,
+        age: updatedDoctor.age ? String(updatedDoctor.age) : formData.age,
+        contactNumber: updatedDoctor.contactNumber || formData.contactNumber,
+        specialization: updatedDoctor.specialization || formData.specialization,
+        experience: updatedDoctor.experience ? String(updatedDoctor.experience) : formData.experience,
+        qualification: updatedDoctor.qualification || formData.qualification,
+        hospitalName: updatedDoctor.hospitalName || formData.hospitalName,
+        address: updatedDoctor.address || formData.address,
+        about: updatedDoctor.about || formData.about,
+      };
+      setFormData(newFormData);
+
+      // Dispatch to Redux
+      dispatch(addUser({
+        _id: userId,
+        ...newFormData,
+      }));
 
       setError('');
       setToast(true);
       setTimeout(() => setToast(false), 3000);
       setImageError(false);
     } catch (err) {
-      console.error('Update error:', err);
       setError(
         err.response?.status === 404
           ? 'Doctor profile not found'
@@ -232,8 +221,11 @@ const DoctorProfile = () => {
     }
   };
 
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleImageError = () => {
-    console.log('Image failed to load:', profilePicture);
     setImageError(true);
   };
 
@@ -270,9 +262,9 @@ const DoctorProfile = () => {
           </button>
           <div className="bg-white shadow-md rounded-lg p-6">
             <div className="flex justify-center mb-6">
-              {profilePicture && !imageError ? (
+              {formData.profilePicture && !imageError ? (
                 <img
-                  src={profilePicture}
+                  src={formData.profilePicture}
                   alt="Profile"
                   className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
                   onError={handleImageError}
@@ -292,8 +284,9 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  required
                 />
               </label>
               <label className="block">
@@ -302,8 +295,9 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Last Name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  required
                 />
               </label>
               <label className="block">
@@ -312,9 +306,9 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Profile Picture URL (jpg, jpeg, png, gif)"
-                  value={profilePicture}
+                  value={formData.profilePicture}
                   onChange={(e) => {
-                    setProfilePicture(e.target.value);
+                    handleInputChange('profilePicture', e.target.value);
                     setImageError(false);
                   }}
                 />
@@ -324,7 +318,7 @@ const DoctorProfile = () => {
                 <input
                   type="email"
                   className="w-full mt-1 p-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-                  value={email}
+                  value={formData.email}
                   readOnly
                 />
               </label>
@@ -334,8 +328,8 @@ const DoctorProfile = () => {
                   type="number"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Age"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  value={formData.age}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
                   min="22"
                   max="100"
                 />
@@ -346,8 +340,8 @@ const DoctorProfile = () => {
                   type="tel"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Phone Number"
-                  value={contactNumber}
-                  onChange={(e) => setContactNumber(e.target.value)}
+                  value={formData.contactNumber}
+                  onChange={(e) => handleInputChange('contactNumber', e.target.value)}
                 />
               </label>
               <label className="block">
@@ -356,8 +350,9 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Specialization"
-                  value={specialization}
-                  onChange={(e) => setSpecialization(e.target.value)}
+                  value={formData.specialization}
+                  onChange={(e) => handleInputChange('specialization', e.target.value)}
+                  required
                 />
               </label>
               <label className="block">
@@ -366,8 +361,8 @@ const DoctorProfile = () => {
                   type="number"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Experience"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
+                  value={formData.experience}
+                  onChange={(e) => handleInputChange('experience', e.target.value)}
                   min="0"
                 />
               </label>
@@ -377,8 +372,9 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Qualification (e.g., MBBS, MD)"
-                  value={qualification}
-                  onChange={(e) => setQualification(e.target.value)}
+                  value={formData.qualification}
+                  onChange={(e) => handleInputChange('qualification', e.target.value)}
+                  required
                 />
               </label>
               <label className="block">
@@ -387,8 +383,8 @@ const DoctorProfile = () => {
                   type="text"
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Hospital Name"
-                  value={hospitalName}
-                  onChange={(e) => setHospitalName(e.target.value)}
+                  value={formData.hospitalName}
+                  onChange={(e) => handleInputChange('hospitalName', e.target.value)}
                 />
               </label>
               <label className="block">
@@ -396,8 +392,8 @@ const DoctorProfile = () => {
                 <textarea
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
                   rows="3"
                 ></textarea>
               </label>
@@ -406,8 +402,8 @@ const DoctorProfile = () => {
                 <textarea
                   className="w-full mt-1 p-2 border rounded-md"
                   placeholder="Write something about yourself..."
-                  value={about}
-                  onChange={(e) => setAbout(e.target.value)}
+                  value={formData.about}
+                  onChange={(e) => handleInputChange('about', e.target.value)}
                   rows="4"
                 ></textarea>
               </label>

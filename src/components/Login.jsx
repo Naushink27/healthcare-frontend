@@ -57,7 +57,6 @@ const Login = () => {
           { withCredentials: true }
 
         );
-        console.log(res.data);
         const user = res.data.user; // e.g., { email, role }
         dispatch(addUser(user)); // Store user in Redux
         setSuccessMessage('Login Successful!');

@@ -10,7 +10,6 @@ import { removeUser } from '../utils/userSlice';
 
 const PatientAppointments = () => {
   const user = useSelector((store) => store.user.user);
-  console.log(user);
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState({}); // Store doctor profiles by doctorId
   const [loading, setLoading] = useState(true);
@@ -61,7 +60,6 @@ const PatientAppointments = () => {
         const doctorIds = [...new Set(appointmentsData.map((appt) => 
           typeof appt.doctorId === 'string' ? appt.doctorId : appt.doctorId?._id
         ))];
-        console.log('Doctor IDs:', doctorIds);
 
         // Fetch doctor profiles concurrently
         const doctorPromises = doctorIds.map((doctorId) =>
