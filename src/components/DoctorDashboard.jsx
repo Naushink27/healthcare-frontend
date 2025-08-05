@@ -5,7 +5,7 @@ import { removeUser } from '../utils/userSlice';
 import { Menu, Calendar } from 'lucide-react';
 import DoctorSidebar from './DoctorSidebar';
 import axios from 'axios';
-import { BASE_URL } from '../utils/constants';
+import { BASE_URL } from '../utils/Constants';
 import Chatbot from './Chatbot';
 
 const DoctorDashboard = () => {
