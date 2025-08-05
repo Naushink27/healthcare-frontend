@@ -143,7 +143,7 @@ const PatientAppointments = () => {
             <Menu className="w-6 h-6" />
           </button>
           <div className="bg-white shadow-2xl rounded-xl p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Your Appointments</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center"> Booked Appointments</h2>
             {appointments.length > 0 ? (
               <>
                 {/* Table for larger screens */}
