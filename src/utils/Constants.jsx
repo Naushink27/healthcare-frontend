@@ -1,1 +1,1 @@
-export const BASE_URL='https://health-care-ly32.onrender.com/'
+export const BASE_URL='https://health-care-ly32.onrender.com'
